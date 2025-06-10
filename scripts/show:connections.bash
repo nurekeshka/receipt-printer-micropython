@@ -1,1 +1,1 @@
-ls /dev/tty.*
+ls /dev/tty.usbmodem*
