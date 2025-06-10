@@ -15,6 +15,7 @@ const App: React.FC = () => {
         body: JSON.stringify({ code }),
       });
       const data = await res.json();
+      console.log(data);
       setOutput(data.result ?? "No output");
     } catch (err) {
       setOutput("Error: " + (err instanceof Error ? err.message : String(err)));
