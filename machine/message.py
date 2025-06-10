@@ -1,0 +1,269 @@
+import time
+import machine
+
+
+class Commands:
+    ESC = b"\x1b\x40"
+
+
+class Item:
+    LUXURY_BASKET_MIX = "LUXURY BASKET MIX"
+    BASIC_REGRET_COMBO = "BASIC REGRET COMBO"
+    PASSIVE_AGGRESSIVE_PEACE = "PASSIVE-AGGRESSIVE PEACE"
+    GUILT_TRIP_SPECIAL = "GUILT TRIP SPECIAL"
+    LOVE_BOMB_LUXE = "LOVE BOMB LUXE"
+
+
+PRODUCTS = {
+    Item.LUXURY_BASKET_MIX: [
+        "-1x Peach (imported, out of season)",
+        "-3x Strawberries (perfectly hulled)",
+        "-1x Pineapple (pre-cut, too acidic)",
+    ],
+    Item.BASIC_REGRET_COMBO: [
+        "-1x Apple (bruised, uneven slices)",
+        "-1x Orange (pre-peeled, drying out)",
+    ],
+    Item.PASSIVE_AGGRESSIVE_PEACE: [
+        "-2x Bananas (overripe, peeled but not sliced)",
+        "-1x Green Apple (with single bite mark)",
+    ],
+    Item.GUILT_TRIP_SPECIAL: [
+        "-3x Pears (meticulously sliced)",
+        "-1x Grape Cluster (washed, still dripping)",
+        "-2x Strawberries (hulled imperfectly)",
+    ],
+    Item.LOVE_BOMB_LUXE: [
+        "-6x Perfect Strawberries (hulled)",
+        "-1x Pineapple (pre-cut, too acidic)",
+        "-1/2 Watermelon (balled, with rind art)",
+    ],
+}
+
+INGREDIENTS = {
+    Item.LUXURY_BASKET_MIX: [
+        "40% Overcompensation.",
+        '30% "See How Much I Care?"',
+        "30% Tax Evasion Energy",
+    ],
+    Item.BASIC_REGRET_COMBO: [
+        '60% "I guess I have to"',
+        "30% Leftover fridge items",
+        "10% Guilt",
+    ],
+    Item.PASSIVE_AGGRESSIVE_PEACE: [
+        '45% "I\'m still right though"',
+        "30% Performance art",
+        "15% Lingering eye-rolls",
+        "10% Actual remorse",
+    ],
+    Item.GUILT_TRIP_SPECIAL: [
+        '50% "Look how hard I worked!"',
+        "25% Weaponized nostalgia",
+        "15% Catholic school flashbacks",
+        "10% Watery eyes (onions nearby)",
+    ],
+    Item.LOVE_BOMB_LUXE: [
+        "60% Overcompensation",
+        "20% Instagram potential",
+        "15% Genuine panic",
+        "5% Actual love",
+    ],
+}
+
+BONUSES = {
+    Item.LUXURY_BASKET_MIX: None,
+    Item.BASIC_REGRET_COMBO: [
+        "-1x Half-hearted hug",
+        '-Free! "You\'re too sensitive"',
+    ],
+    Item.PASSIVE_AGGRESSIVE_PEACE: [
+        "-1x Loud sigh during preparation",
+        '-Free! "Whatever" shrug',
+    ],
+    Item.GUILT_TRIP_SPECIAL: None,
+    Item.LOVE_BOMB_LUXE: None,
+}
+
+SPECIALS = {
+    Item.LUXURY_BASKET_MIX: 'Free! "I Miss You" (Valid for 24h)',
+    Item.BASIC_REGRET_COMBO: None,
+    Item.PASSIVE_AGGRESSIVE_PEACE: None,
+    Item.GUILT_TRIP_SPECIAL: None,
+    Item.LOVE_BOMB_LUXE: None,
+}
+
+VIPS = {
+    Item.LUXURY_BASKET_MIX: None,
+    Item.BASIC_REGRET_COMBO: None,
+    Item.PASSIVE_AGGRESSIVE_PEACE: None,
+    Item.GUILT_TRIP_SPECIAL: None,
+    Item.LOVE_BOMB_LUXE: [
+        '-"World\'s Best Mom" mug',
+        "-Free! Lifetime guilt subscription",
+    ],
+}
+
+THOUGHTS = {
+    Item.LUXURY_BASKET_MIX: None,
+    Item.BASIC_REGRET_COMBO: "Wow, The bare minimun again, at least pretend to care next time.",
+    Item.PASSIVE_AGGRESSIVE_PEACE: "We both know who's really paying for this",
+    Item.GUILT_TRIP_SPECIAL: 'Someone\'s getting "Remember when I carried you for nine months?!" tonight',
+    Item.LOVE_BOMB_LUXE: "This won't fix your trust issues.",
+}
+
+
+TOTALS = {
+    Item.LUXURY_BASKET_MIX: 250,
+    Item.BASIC_REGRET_COMBO: 40,
+    Item.PASSIVE_AGGRESSIVE_PEACE: 755,
+    Item.GUILT_TRIP_SPECIAL: 180,
+    Item.LOVE_BOMB_LUXE: 250,
+}
+
+HINTS = {
+    Item.LUXURY_BASKET_MIX: "Emotional VAT included.",
+    Item.BASIC_REGRET_COMBO: "Cash only - emotions not accepted.",
+    Item.PASSIVE_AGGRESSIVE_PEACE: "We're all just pretending here.",
+    Item.GUILT_TRIP_SPECIAL: "Gratitude not included.",
+    Item.LOVE_BOMB_LUXE: "Void where prohibited by pride.",
+}
+
+
+class SparkFunPrinter:
+    def __init__(self) -> None:
+        self.uart = machine.UART(  # type: ignore
+            0, baudrate=19200, tx=machine.Pin(0), rx=machine.Pin(1)  # type: ignore
+        )
+
+    """ Working with commands to print """
+
+    def receipt(self, item: str) -> None:
+        self.reseting()
+        self.title()
+        self.items(item)
+        self.products(item)
+        self.ingredients(item)
+        self.specials(item)
+        self.bonuses(item)
+        self.vips(item)
+        self.thoughts(item)
+        self.totals(item)
+        self.hints(item)
+
+    def title(self) -> None:
+        self.write("APOLOGY MARKET")
+        self.timestamp()
+        self.blank()
+
+    def items(self, item: str) -> None:
+        self.line()
+        self.write(f"ITEM: {item.upper()}")
+        self.line()
+
+    def products(self, item: str) -> None:
+        self.blank()
+
+        for product in PRODUCTS[item]:
+            self.write(product)
+
+        self.blank()
+
+    def ingredients(self, item: str) -> None:
+        self.write("INGREDIENTS:")
+
+        for ingredient in INGREDIENTS[item]:
+            self.write(ingredient)
+
+        self.blank()
+
+    def specials(self, item: str) -> None:
+        query = SPECIALS.get(item)
+
+        if query is None:
+            return
+
+        self.inblocks(lambda: (self.write("SPECIAL OFFERS:"), self.write(query)))
+
+    def bonuses(self, item: str) -> None:
+        query = BONUSES.get(item)
+
+        if query is None:
+            return
+
+        self.inblocks(lambda: (self.write("BONUS:"), self.write_list(query)))
+
+    def vips(self, item: str) -> None:
+        query = VIPS.get(item)
+
+        if query is None:
+            return
+
+        self.inblocks(lambda: (self.write("VIP PERKS:"), self.write_list(query)))
+
+    def thoughts(self, item: str) -> None:
+        query = THOUGHTS.get(item)
+
+        if query is None:
+            return
+
+        self.inblocks(
+            lambda: (
+                self.write("CASHIER'S THOUGHTS:"),
+                self.write(f'"{query}"'),
+            )
+        )
+
+    def totals(self, item: str) -> None:
+        self.write(f"TOTAL: ${TOTALS[item]}")
+
+    def hints(self, item: str) -> None:
+        self.write(f"*** {HINTS[item]}")
+
+    """ Middle abstraction with commands """
+
+    def write_list(self, lines) -> None:
+        for line in lines:
+            self.write(line)
+
+    def inblocks(self, plain) -> None:
+        self.line()
+        self.blank()
+        plain()
+        self.blank()
+        self.line()
+        self.blank()
+
+    def reseting(self) -> None:
+        self.enter(Commands.ESC)
+
+    def timestamp(self) -> None:
+        t = time.localtime()
+        formatted = "{:02d}.{:02d}.{:04d} - {:02d}:{:02d}".format(
+            t[2], t[1], t[0], t[3], t[4]
+        )
+        self.write(f"{formatted} | Terminal #4")
+
+    def line(self) -> None:
+        self.write(" ".join(["-"] * 16))
+
+    """ Lowest abstraction layers """
+
+    def write(self, plain: str) -> None:
+        self.uart.write(f"{plain}\n".encode("ascii"))
+
+    def enter(self, action: bytes) -> None:
+        self.uart.write(action)
+        time.sleep(0.1)
+
+    def blank(self, lines=1) -> None:
+        self.uart.write(b"\n" * lines)
+
+
+def main():
+    sparks = SparkFunPrinter()
+    sparks.receipt(Item.GUILT_TRIP_SPECIAL)
+
+
+if __name__ == "__main__":
+    main()

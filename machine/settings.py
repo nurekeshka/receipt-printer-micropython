@@ -1,13 +1,18 @@
-import configparser
 import os
+import glob
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-configs = configparser.ConfigParser()
-configs.read(os.path.join(BASE_DIR, "settings.ini"))
+def raspberry_pi_port() -> str:
+    candidates = glob.glob("/dev/tty.usbmodem*")
+
+    for port in candidates:
+        if os.access(port, os.R_OK | os.W_OK):
+            return port
+
+    raise RuntimeError("Raspberry Pi isn't connected")
 
 
 class Settings:
-    PORT = configs.get("RASPBERRY", "PORT")
+    PORT = raspberry_pi_port()
     BAUDRATE = 115200
     TIMEOUT = 1
