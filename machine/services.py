@@ -16,7 +16,8 @@ class RaspberryConnector:
 
     def receipt(self, item: Item) -> str:
         with open(os.path.join(BASE_DIR, "message.txt")) as file:
-            return self.write(file.read().replace("PLACEHOLDER", item.value))
+            code = self.write(file.read().replace("PLACEHOLDER", item.value))
+            return self.write(code)
 
     def write(self, code: str) -> str:
         try:
