@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware import Middleware
 from fastapi.middleware.cors import CORSMiddleware
-from .models import CodeSnippet
+from .models import CodeSnippet, ReceiptBody
 from .services import RaspberryConnector
 
 
@@ -17,6 +17,12 @@ app = FastAPI(
 )
 
 service = RaspberryConnector()
+
+
+@app.post("/api/receipt")
+def receipt(body: ReceiptBody):
+    message = service.receipt(body.choice)
+    return {"status": "done", "message": message}
 
 
 @app.post("/api/micropython")

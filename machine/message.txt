@@ -262,7 +262,7 @@ class SparkFunPrinter:
 
 def main():
     sparks = SparkFunPrinter()
-    sparks.receipt(Item.GUILT_TRIP_SPECIAL)
+    sparks.receipt(Item.PLACEHOLDER)
 
 
 if __name__ == "__main__":

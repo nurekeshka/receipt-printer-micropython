@@ -1,6 +1,8 @@
 import os
 import glob
 
+BASE_DIR = os.path.dirname(__file__)
+
 
 def raspberry_pi_port() -> str:
     candidates = glob.glob("/dev/tty.usbmodem*")

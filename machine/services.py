@@ -1,9 +1,11 @@
+import os
 import time
 
 from serial import Serial
 
 from .constants import Symbols
-from .settings import Settings
+from .settings import BASE_DIR, Settings
+from .models import Item
 
 
 class RaspberryConnector:
@@ -11,6 +13,10 @@ class RaspberryConnector:
         self.port = Settings.PORT
         self.timeout = Settings.TIMEOUT
         self.baudrate = Settings.BAUDRATE
+
+    def receipt(self, item: Item) -> str:
+        with open(os.path.join(BASE_DIR, "message.txt")) as file:
+            return self.write(file.read().replace("PLACEHOLDER", item.value))
 
     def write(self, code: str) -> str:
         try:
@@ -27,7 +33,7 @@ class RaspberryConnector:
                 session.write(Symbols.CTRL_D)
                 time.sleep(0.5)
 
-                output = session.read_all().decode(errors="ignore")
+                output = session.read_all().decode(errors="ignore")  # type: ignore
                 return output
         except Exception as e:
             return f"Ошибка: {e}"
