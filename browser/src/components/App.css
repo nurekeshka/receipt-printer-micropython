@@ -1,0 +1,10 @@
+html,
+body {
+  position: fixed;
+  overflow: auto;
+  height: 100%;
+  width: 100%;
+  scrollbar-color: transparent transparent;
+  scrollbar-width: none;
+  background-color: #2d3436;
+}
